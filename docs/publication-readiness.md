@@ -30,6 +30,8 @@ A Chrome browser review used a separate fictional review database on 127.0.0.1:8
 
 The browser review exposed a mixed-format timestamp sorting bug. Lead and task queries now compare parsed SQLite dates, with a regression test. All tests passed after the cleanup and fix. Browser screenshots are held in ignored local artifacts for human selection; installed browser extension overlays should be removed by using a clean profile for publication captures.
 
+License update verification: after adding the approved MIT license, pytest (50 passed), coverage (90.83%), Ruff lint/format, scoped mypy, pip consistency, development-install dry-run, runtime vulnerability audit, source/history privacy scan, Git whitespace checks, and operational SQLite preservation/integrity checks passed again. The browser review above belongs to the preceding implementation review; this update changes licensing and documentation only.
+
 ## C. Security findings
 
 Resolved: parameterized queries, input length/format controls, idempotent intake, atomic writes, local-only adapters, demo delivery enforcement, stale reminder cancellation, explicit report formula escaping, safe error messages, local binding, hidden exception detail, secret/data exclusions and verified snapshots.
@@ -52,7 +54,7 @@ Suggested repository description: **Local contractor CRM with customer intake, f
 
 Suggested topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 
-No license grant is included. MIT is the recommendation, pending owner approval of the license and copyright holder. Select and review final screenshots before adding them to the repository. The security contact also remains an owner decision.
+The owner approved the MIT license on November 2, 2026. LICENSE contains the standard MIT text with Copyright (c) 2026 Jason. Select and review final screenshots before adding them to the repository. The security contact also remains an owner decision. The final publication checklist is [documented separately](github-publication-checklist.md).
 
 ## F. Known limitations
 
@@ -63,7 +65,7 @@ Reminder checks run on app reruns or CLI invocation; no always-running scheduler
 Before public publication, the owner must:
 
 1. Review the publication candidate, documentation, commit authorship and privacy scan scope.
-2. Approve a license and copyright attribution; add the approved license text.
+2. Completed: MIT license approved and added; verify the displayed copyright name during final owner review.
 3. Select reviewed fictional-data screenshots and a security contact.
 4. Approve the GitHub repository name, description, topics and visibility.
 5. Explicitly approve publishing/pushing the reviewed branch. Do not use a mirror push.

@@ -119,4 +119,4 @@ This is a local application, not an authenticated multi-tenant service. It does 
 
 Operational databases, demo files, backups, secrets, local IDE configuration, development instructions, and generated review artifacts are excluded from source control. Read [security limitations](SECURITY.md), [demo capture instructions](docs/demo-walkthrough.md), and the [publication review](docs/publication-readiness.md) before sharing the repository.
 
-An MIT license is recommended, pending owner approval. No license grant has been added. Existing Git history and attribution are retained.
+Licensed under the [MIT License](LICENSE). Existing Git history and attribution are retained. See the [final publication checklist](docs/github-publication-checklist.md) before publishing.
