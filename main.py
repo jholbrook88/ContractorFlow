@@ -1,9 +1,13 @@
 
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 from database import (initialize_database, add_lead, get_leads, update_lead_status,
                       get_tasks, complete_task)
-from followups import task_state, utc_now
+from followups import utc_now
+from analytics import (DATE_RANGES, filter_records, calculate_kpis, category_counts,
+                       pipeline_report, inquiry_volume, export_csv, localize_records,
+                       parse_utc, report_task_state as task_state)
 
 # Initialize the CRM database
 initialize_database()
@@ -29,54 +33,99 @@ leads = get_leads()
 
 # DASHBOARD
 if page == "Dashboard":
-    st.title("ContractorFlow Dashboard")
-    st.write("Welcome to your business automation dashboard.")
-
-    total_leads = len(leads)
-    new_leads = sum(1 for lead in leads if lead["status"] == "New")
-    tasks = get_tasks()
+    st.title("Business intelligence")
+    st.caption("A clear view of your inquiries, pipeline and follow-up workload.")
+    period = st.selectbox("Date range", list(DATE_RANGES), index=3)
     now = utc_now()
-    open_tasks = [dict(task, state=task_state(task, now))
-                  for task in tasks if not task["completed_at"]]
-    pending_followups = len(open_tasks)
-    overdue_followups = sum(task["state"] == "Overdue" for task in open_tasks)
+    all_tasks = get_tasks()
+    report_leads = filter_records(leads, period, now)
+    tasks = filter_records(all_tasks, period, now)
+    kpis = calculate_kpis(report_leads, tasks, now)
+    st.caption("Dates use America/New_York. Last N days includes today through now and the preceding N−1 calendar days. "
+               "Leads are filtered by submission date; tasks independently by task creation date. "
+               "All time includes records with unknown dates. Counts show current statuses, not historical transitions.")
+    for columns, metrics in [
+        (st.columns(3), [("Total Leads", kpis["total_leads"]),
+                         ("New Inquiries", kpis["new_inquiries"]),
+                         ("Conversion rate", f"{kpis['conversion_rate']:.1f}%" if kpis["conversion_rate"] is not None else "N/A")]),
+        (st.columns(3), [("Pending Follow-Ups", kpis["pending_tasks"]),
+                         ("Overdue Follow-Ups", kpis["overdue_tasks"]),
+                         ("Completed follow-ups", kpis["completed_followups"])])]:
+        for column, (label, value) in zip(columns, metrics):
+            column.metric(label, value, border=True)
+    st.caption("Conversion = Won ÷ all filtered leads. New inquiries = leads currently New. "
+               "Pending includes all unfinished tasks; overdue is a subset. Completed counts tasks created in the selected period, regardless of completion date.")
+    missing_lead_dates = sum(parse_utc(lead.get("created_at")) is None for lead in leads)
+    missing_task_dates = sum(parse_utc(task.get("created_at")) is None for task in all_tasks)
+    if missing_lead_dates or missing_task_dates:
+        st.warning(f"Unknown creation dates: {missing_lead_dates} leads, {missing_task_dates} tasks. "
+                   "These records appear only in All time and are excluded from the inquiry timeline.")
+    if any(task_state(task, now) == "Unknown deadline" for task in tasks):
+        st.warning("Some unfinished tasks have unknown deadlines. They count as pending but cannot be classified as overdue.")
 
-    col1, col2, col3, col4 = st.columns(4)
+    st.subheader("Reports")
+    left, right = st.columns(2)
+    left.download_button("Export leads CSV", export_csv(report_leads, "leads", now),
+                         file_name="contractorflow-leads.csv", mime="text/csv")
+    right.download_button("Export tasks CSV", export_csv(tasks, "tasks", now),
+                          file_name="contractorflow-tasks.csv", mime="text/csv")
+    st.caption("Exports match the selected date range and include New York UTC offsets. Spreadsheet formula-like text is escaped.")
 
-    with col1:
-        st.metric("Total Leads", total_leads)
+    if not report_leads:
+        st.info("No inquiries in this date range. Choose All time or submit a customer inquiry to begin.")
+    else:
+        if len(report_leads) < 2:
+            st.info("Only one inquiry is available. Counts are shown, but there is not enough data to establish a trend.")
+        left, right = st.columns(2)
+        for container, field, title, order in [
+            (left, "service", "Leads by service", ()),
+            (right, "urgency", "Leads by urgency", ("Low", "Normal", "High", "Emergency"))]:
+            with container:
+                with st.container(border=True):
+                    st.subheader(title)
+                    fig = px.bar(pd.DataFrame(category_counts(report_leads, field, order)),
+                                 x="Category", y="Leads", text="Leads")
+                    fig.update_traces(marker_color="#2563eb")
+                    fig.update_layout(xaxis_title=None, yaxis_dtick=1, margin=dict(t=15, b=15))
+                    st.plotly_chart(fig, key=f"leads_{field}", alt=title)
 
-    with col2:
-        st.metric("New Inquiries", new_leads)
+    with st.container(border=True):
+        st.subheader("Lead pipeline · current status")
+        pipeline = pd.DataFrame(pipeline_report(report_leads))
+        if report_leads:
+            fig = px.bar(pipeline, x="Category", y="Leads", text="Leads",
+                         color="Category", color_discrete_sequence=px.colors.qualitative.Safe)
+            fig.update_layout(showlegend=False, xaxis_title=None, yaxis_dtick=1, margin=dict(t=15, b=15))
+            st.plotly_chart(fig, key="pipeline", alt="Lead counts by current pipeline status")
+        st.dataframe(pipeline.rename(columns={"Category": "Status"}), hide_index=True, alt="Pipeline counts")
+        st.caption("Stages are independent current counts, not a cumulative funnel or stage-to-stage conversion.")
 
-    with col3:
-        st.metric("Pending Follow-Ups", pending_followups)
-
-    with col4:
-        st.metric("Overdue Follow-Ups", overdue_followups)
+    with st.container(border=True):
+        st.subheader("Inquiry volume over time")
+        volume = inquiry_volume(report_leads, period, now)
+        if volume:
+            fig = px.bar(pd.DataFrame(volume), x="Period", y="Inquiries")
+            fig.update_layout(xaxis_title=f"{volume[0]['Interval']} · America/New_York", yaxis_dtick=1,
+                              margin=dict(t=15, b=15))
+            st.plotly_chart(fig, key="inquiry_volume", alt="Inquiries per New York calendar period")
+            st.caption("Zero periods are included between dates. Spans longer than a year use monthly counts.")
+        else:
+            st.info("No valid inquiry dates are available for a timeline.")
 
     st.subheader("Pending and overdue follow-ups")
-    st.caption("Pending includes all unfinished tasks. Deadlines are displayed in UTC; refresh to update overdue status.")
+    open_tasks = [dict(task, state=task_state(task, now)) for task in tasks if not task.get("completed_at")]
     if open_tasks:
-        st.dataframe(pd.DataFrame(open_tasks)[
+        st.dataframe(pd.DataFrame(localize_records(open_tasks))[
             ["id", "lead_id", "name", "service", "urgency", "due_at", "state"]],
-            hide_index=True, width="stretch", alt="Unfinished follow-up tasks")
+            hide_index=True, alt="Unfinished follow-up tasks")
     else:
-        st.info("No pending follow-ups.")
-
-    st.divider()
-    st.subheader("Recent Customer Inquiries")
-
-    if leads:
-        df = pd.DataFrame(leads)
-        st.dataframe(
-            df[["id", "name", "service", "urgency", "status", "created_at"]],
-            hide_index=True,
-            width="stretch",
-            alt="Customer inquiries"
-        )
-    else:
-        st.info("No customer inquiries have been submitted yet.")
+        st.info("No pending follow-ups in this date range.")
+    st.subheader("Customer inquiries")
+    if report_leads:
+        st.dataframe(pd.DataFrame(localize_records(report_leads))[
+            ["id", "name", "service", "urgency", "status", "created_at"]],
+            hide_index=True, alt="Customer inquiries in the selected period")
+    st.caption("All displayed timestamps use America/New_York with UTC offsets. Refresh to update task states.")
 
 # CUSTOMER INQUIRIES
 elif page == "Customer Inquiries":
@@ -138,9 +187,10 @@ elif page == "Customer Inquiries":
 elif page == "Lead Management":
     st.title("Lead Management")
     st.write("View and manage customer inquiries.")
+    st.caption("Timestamps use America/New_York with UTC offsets.")
 
     if leads:
-        df = pd.DataFrame(leads)
+        df = pd.DataFrame(localize_records(leads))
 
         st.dataframe(
             df[
@@ -197,7 +247,7 @@ elif page == "Lead Management":
 # TASK MANAGEMENT
 elif page == "Task Management":
     st.title("Task management")
-    st.caption("Deadlines and completion times are UTC. Completing a task does not change its lead status.")
+    st.caption("Deadlines and completion times use America/New_York with UTC offsets. Completing a task does not change its lead status.")
     task_filter = st.selectbox("Show tasks", ["Open", "Overdue", "Completed", "All"])
     now = utc_now()
     tasks = [dict(task, state=task_state(task, now)) for task in get_tasks()]
@@ -205,7 +255,7 @@ elif page == "Task Management":
                or (task_filter == "Open" and task["state"] != "Completed")
                or task["state"] == task_filter]
     if visible:
-        st.dataframe(pd.DataFrame(visible)[
+        st.dataframe(pd.DataFrame(localize_records(visible))[
             ["id", "lead_id", "name", "email", "phone", "service", "urgency",
              "due_at", "state", "completed_at"]], hide_index=True,
             width="stretch", alt="Follow-up tasks with customer contact details")
@@ -233,4 +283,4 @@ elif page == "Settings":
     st.write("Application: ContractorFlow")
     st.write("Database: SQLite")
     st.write("Framework: Streamlit")
-    st.write("Version: 0.2.0")
+    st.write("Version: 0.3.0")

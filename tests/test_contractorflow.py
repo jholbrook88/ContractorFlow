@@ -126,7 +126,7 @@ class UITests(unittest.TestCase):
 
     def test_inquiry_to_dashboard_to_completion(self):
         from streamlit.testing.v1 import AppTest
-        app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'main.py')).run()
+        app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'main.py'), default_timeout=10).run()
         self.assertFalse(app.exception)
         app.sidebar.radio[0].set_value('Customer Inquiries').run()
         app.button[0].click().run()
@@ -149,7 +149,7 @@ class UITests(unittest.TestCase):
             conn.execute("UPDATE followup_tasks SET due_at='2020-01-01T00:00:00.000000+00:00'")
         app.sidebar.radio[0].set_value('Dashboard').run()
         self.assertFalse(app.exception)
-        self.assertEqual([m.value for m in app.metric], ['1', '0', '1', '1'])
+        self.assertEqual([m.value for m in app.metric], ['1', '0', '0.0%', '1', '1', '0'])
         app.sidebar.radio[0].set_value('Task Management').run()
         app.selectbox[0].set_value('Overdue').run()
         self.assertFalse(app.exception)
@@ -159,13 +159,51 @@ class UITests(unittest.TestCase):
         app.selectbox[0].set_value('Completed').run()
         self.assertEqual(len(app.dataframe[0].value), 1)
         app.sidebar.radio[0].set_value('Dashboard').run()
-        self.assertEqual([m.value for m in app.metric][-2:], ['0', '0'])
+        self.assertEqual([m.value for m in app.metric][-3:], ['0', '0', '1'])
         app.sidebar.radio[0].set_value('Settings').run()
         self.assertFalse(app.exception)
 
+    def test_analytics_filter_charts_exports_and_local_display(self):
+        from streamlit.testing.v1 import AppTest
+        now = datetime(2026, 11, 2, 17, tzinfo=timezone.utc)
+        db.initialize_database()
+        with patch('database.utc_now', return_value=now):
+            current = db.add_lead('Current', 'new@example.com', '', 'HVAC', '', 'High')
+            old = db.add_lead('Older', 'old@example.com', '', 'Plumbing', '', 'Low')
+        with db.connection() as conn:
+            conn.execute("UPDATE leads SET created_at='2026-11-02 17:00:00', status='Won' WHERE id=?", (current,))
+            conn.execute("UPDATE leads SET created_at='2026-01-01 12:00:00' WHERE id=?", (old,))
+            conn.execute("UPDATE followup_tasks SET created_at='2026-01-01T12:00:00Z' WHERE lead_id=?", (old,))
+        with patch('followups.utc_now', return_value=now):
+            app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'main.py'), default_timeout=10).run()
+            self.assertFalse(app.exception)
+            self.assertEqual([m.value for m in app.metric], ['2', '1', '50.0%', '2', '0', '0'])
+            self.assertEqual(len(app.get('plotly_chart')), 4)
+            self.assertEqual(len(app.get('download_button')), 2)
+            for period in ['Last 7 days', 'Last 30 days', 'Last 90 days']:
+                app.selectbox[0].set_value(period).run()
+                self.assertFalse(app.exception)
+                self.assertEqual([m.value for m in app.metric], ['1', '0', '100.0%', '1', '0', '0'])
+                self.assertEqual(app.dataframe[-1].value.iloc[0]['created_at'], '2026-11-02 12:00:00-05:00')
+            app.selectbox[0].set_value('All time').run()
+            self.assertEqual(app.metric[0].value, '2')
+            app.sidebar.radio[0].set_value('Lead Management').run()
+            self.assertFalse(app.exception)
+            self.assertIn('-05:00', app.dataframe[0].value.iloc[0]['created_at'])
+            app.sidebar.radio[0].set_value('Task Management').run()
+            self.assertFalse(app.exception)
+            self.assertTrue(all('-05:00' in value for value in app.dataframe[0].value['due_at']))
+            with db.connection() as conn:
+                conn.execute("UPDATE leads SET created_at=NULL, service='', status=NULL WHERE id=?", (old,))
+                conn.execute("UPDATE followup_tasks SET due_at='invalid' WHERE lead_id=?", (old,))
+            app.sidebar.radio[0].set_value('Dashboard').run()
+            self.assertFalse(app.exception)
+            self.assertEqual(len(app.warning), 2)
+            self.assertEqual(len(app.get('download_button')), 2)
+
     def test_empty_pages(self):
         from streamlit.testing.v1 import AppTest
-        app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'main.py')).run()
+        app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'main.py'), default_timeout=10).run()
         for page in ['Dashboard', 'Lead Management', 'Task Management', 'Settings']:
             app.sidebar.radio[0].set_value(page).run()
             self.assertFalse(app.exception)
