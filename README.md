@@ -77,3 +77,48 @@ The timeline counts inquiries by New York day and fills zero days between dates 
 CSV exports contain the selected filtered records, stable headers even when empty, New York timestamps with UTC offsets, and a UTF-8 BOM for spreadsheet compatibility. Commas, quotes and newlines are handled by the standard CSV writer. Text that could be interpreted as a spreadsheet formula is prefixed with an apostrophe; this can also affect phone numbers beginning with +. Downloads include customer contact information.
 
 The pre-analytics source checkpoint is `187d39f`; the local database backup is `backups/before-analytics.db`. This milestone requires no database schema or stored-data changes. Analytics tests use isolated temporary databases.
+
+
+## Portfolio demonstration (development only)
+
+A dedicated generator creates **150 fictional inquiries and 150 matching follow-ups across 90 New York calendar days**. It uses weighted service/urgency distributions, more open inquiries among recent records, and more won/lost outcomes among older records. Follow-ups include completed on-time/late tasks, pending tasks, and overdue tasks. Deadlines use the application's actual urgency rules. This is synthetic example data, not evidence of real business performance.
+
+A ready-to-use demo database is generated locally at `demo_data/contractorflow-demo.db`. Launch it from the project folder:
+
+```powershell
+.venv\Scripts\python demo.py run
+```
+
+Open **http://127.0.0.1:8502**. The launcher binds to the local computer, overrides the database only for the child process, disables Streamlit usage statistics, and displays a Fictional data banner on every page. Operational launch commands and the parent terminal's environment remain unchanged. Stop the demo with Ctrl+C. No server is started automatically by generating data.
+
+If starting from a fresh checkout, first generate the database:
+
+```powershell
+.venv\Scripts\python demo.py seed
+.venv\Scripts\python demo.py run
+```
+
+Generation defaults to random seed 42 and the current UTC instant rounded to seconds. For repeatable records, supply **both** a seed and fixed ISO snapshot time. Two fresh files generated with the same inputs contain identical records and metadata:
+
+```powershell
+.venv\Scripts\python demo.py seed --database demo_data/replay.db --seed 42 --as-of "2026-11-02T17:00:00Z"
+.venv\Scripts\python demo.py run --database demo_data/replay.db
+```
+
+The generator refuses to overwrite any existing file and only permits `.db` files directly within `demo_data/`. To create a fresh demonstration later, use a new filename such as `demo_data/portfolio-session.db`. The demo launcher requires a generator-created metadata marker and never falls back to the operational database. Demo changes persist in that demo file. To replay the pristine dataset, generate another fresh file with the same seed and snapshot.
+
+The snapshot time and seed are saved in the `demo_metadata` table. The dashboard still uses the real clock: pending tasks become overdue as time passes, and older snapshots move out of recent-date filters. Generate a fresh snapshot near a live presentation for relevant recent-date views. No clock override changes production task logic.
+
+`demo_data/` and all SQLite files/journals are ignored by Git. Only the generator, launcher, chart helpers, tests and documentation belong in source control. Do not force-add generated databases without explicit approval.
+
+Suggested portfolio walkthrough:
+
+1. Start with All time to explain the six KPIs and current lead pipeline.
+2. Switch to Last 30 days to demonstrate filtering and the clean date-only timeline labels.
+3. Explore service mix and urgency using interactive hover and zoom controls.
+4. Open Task Management, filter Overdue, and complete a fictional follow-up.
+5. Return to the dashboard to show the updated task counts, then download a CSV report.
+
+Presentation changes lead with the timeline, use horizontal service bars, consistent chart spacing and status/urgency colors, and keep detailed metric definitions in an expander. Date axes use explicit calendar labels such as Nov 2, full dates on hover, bounded tick density, and a padded single-day range. Empty charts show helpful messages. `charts.py` owns this reusable presentation logic; `demo.py` owns development-only data and launch tooling.
+
+Before this milestone, source was checkpointed at `df6c626` and operational data backed up locally to `backups/before-demo-milestone.db`. The operational schema and stored records are not modified by demo generation.

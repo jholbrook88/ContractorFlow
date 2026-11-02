@@ -1,7 +1,8 @@
 
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import os
+from charts import category_figure, volume_figure
 from database import (initialize_database, add_lead, get_leads, update_lead_status,
                       get_tasks, complete_task)
 from followups import utc_now
@@ -15,18 +16,21 @@ initialize_database()
 # Configure the application
 st.set_page_config(
     page_title="ContractorFlow",
-    page_icon="🔧",
+    page_icon=":material/handyman:",
     layout="wide"
 )
 
 # Sidebar navigation
-st.sidebar.title("🔧 ContractorFlow")
+st.sidebar.title("ContractorFlow")
 st.sidebar.caption("Small Business Automation Platform")
 
 page = st.sidebar.radio(
     "Navigation",
     ["Dashboard", "Customer Inquiries", "Lead Management", "Task Management", "Settings"]
 )
+
+if os.environ.get("CONTRACTORFLOW_DEMO") == "1":
+    st.info("Demo workspace · Fictional customer data. Changes affect only this demo database.", icon=":material/science:")
 
 # Retrieve customer leads
 leads = get_leads()
@@ -41,9 +45,13 @@ if page == "Dashboard":
     report_leads = filter_records(leads, period, now)
     tasks = filter_records(all_tasks, period, now)
     kpis = calculate_kpis(report_leads, tasks, now)
-    st.caption("Dates use America/New_York. Last N days includes today through now and the preceding N−1 calendar days. "
+    with st.expander("How to read this dashboard"):
+        st.caption("Dates use America/New_York. Last N days includes today through now and the preceding N−1 calendar days. "
                "Leads are filtered by submission date; tasks independently by task creation date. "
                "All time includes records with unknown dates. Counts show current statuses, not historical transitions.")
+        st.caption("Conversion = Won ÷ all filtered leads. New inquiries = leads currently New. "
+                   "Pending includes all unfinished tasks; overdue is a subset. Completed counts tasks created in the selected period, regardless of completion date.")
+
     for columns, metrics in [
         (st.columns(3), [("Total Leads", kpis["total_leads"]),
                          ("New Inquiries", kpis["new_inquiries"]),
@@ -53,8 +61,7 @@ if page == "Dashboard":
                          ("Completed follow-ups", kpis["completed_followups"])])]:
         for column, (label, value) in zip(columns, metrics):
             column.metric(label, value, border=True)
-    st.caption("Conversion = Won ÷ all filtered leads. New inquiries = leads currently New. "
-               "Pending includes all unfinished tasks; overdue is a subset. Completed counts tasks created in the selected period, regardless of completion date.")
+    st.caption("Current pipeline · Won ÷ total leads · Pending includes overdue tasks · New York calendar dates")
     missing_lead_dates = sum(parse_utc(lead.get("created_at")) is None for lead in leads)
     missing_task_dates = sum(parse_utc(task.get("created_at")) is None for task in all_tasks)
     if missing_lead_dates or missing_task_dates:
@@ -63,14 +70,18 @@ if page == "Dashboard":
     if any(task_state(task, now) == "Unknown deadline" for task in tasks):
         st.warning("Some unfinished tasks have unknown deadlines. They count as pending but cannot be classified as overdue.")
 
-    st.subheader("Reports")
-    left, right = st.columns(2)
-    left.download_button("Export leads CSV", export_csv(report_leads, "leads", now),
-                         file_name="contractorflow-leads.csv", mime="text/csv")
-    right.download_button("Export tasks CSV", export_csv(tasks, "tasks", now),
-                          file_name="contractorflow-tasks.csv", mime="text/csv")
-    st.caption("Exports match the selected date range and include New York UTC offsets. Spreadsheet formula-like text is escaped.")
+    with st.container(border=True):
+        st.subheader("Inquiry volume over time")
+        volume = inquiry_volume(report_leads, period, now)
+        if volume:
+            fig = volume_figure(volume)
+            st.plotly_chart(fig, key="inquiry_volume", alt="Inquiries per New York calendar period")
+            st.caption("Zero periods are included between dates. Spans longer than a year use monthly counts.")
+        else:
+            st.info("No valid inquiry dates are available for a timeline.")
 
+
+    st.subheader("Inquiry breakdown")
     if not report_leads:
         st.info("No inquiries in this date range. Choose All time or submit a customer inquiry to begin.")
     else:
@@ -83,36 +94,20 @@ if page == "Dashboard":
             with container:
                 with st.container(border=True):
                     st.subheader(title)
-                    fig = px.bar(pd.DataFrame(category_counts(report_leads, field, order)),
-                                 x="Category", y="Leads", text="Leads")
-                    fig.update_traces(marker_color="#2563eb")
-                    fig.update_layout(xaxis_title=None, yaxis_dtick=1, margin=dict(t=15, b=15))
+                    fig = category_figure(category_counts(report_leads, field, order), field)
                     st.plotly_chart(fig, key=f"leads_{field}", alt=title)
 
     with st.container(border=True):
         st.subheader("Lead pipeline · current status")
         pipeline = pd.DataFrame(pipeline_report(report_leads))
         if report_leads:
-            fig = px.bar(pipeline, x="Category", y="Leads", text="Leads",
-                         color="Category", color_discrete_sequence=px.colors.qualitative.Safe)
-            fig.update_layout(showlegend=False, xaxis_title=None, yaxis_dtick=1, margin=dict(t=15, b=15))
+            fig = category_figure(pipeline_report(report_leads), "status")
             st.plotly_chart(fig, key="pipeline", alt="Lead counts by current pipeline status")
         st.dataframe(pipeline.rename(columns={"Category": "Status"}), hide_index=True, alt="Pipeline counts")
         st.caption("Stages are independent current counts, not a cumulative funnel or stage-to-stage conversion.")
 
-    with st.container(border=True):
-        st.subheader("Inquiry volume over time")
-        volume = inquiry_volume(report_leads, period, now)
-        if volume:
-            fig = px.bar(pd.DataFrame(volume), x="Period", y="Inquiries")
-            fig.update_layout(xaxis_title=f"{volume[0]['Interval']} · America/New_York", yaxis_dtick=1,
-                              margin=dict(t=15, b=15))
-            st.plotly_chart(fig, key="inquiry_volume", alt="Inquiries per New York calendar period")
-            st.caption("Zero periods are included between dates. Spans longer than a year use monthly counts.")
-        else:
-            st.info("No valid inquiry dates are available for a timeline.")
-
-    st.subheader("Pending and overdue follow-ups")
+    st.divider()
+    st.subheader("Follow-up work queue")
     open_tasks = [dict(task, state=task_state(task, now)) for task in tasks if not task.get("completed_at")]
     if open_tasks:
         st.dataframe(pd.DataFrame(localize_records(open_tasks))[
@@ -120,12 +115,23 @@ if page == "Dashboard":
             hide_index=True, alt="Unfinished follow-up tasks")
     else:
         st.info("No pending follow-ups in this date range.")
+    st.divider()
     st.subheader("Customer inquiries")
     if report_leads:
         st.dataframe(pd.DataFrame(localize_records(report_leads))[
             ["id", "name", "service", "urgency", "status", "created_at"]],
             hide_index=True, alt="Customer inquiries in the selected period")
     st.caption("All displayed timestamps use America/New_York with UTC offsets. Refresh to update task states.")
+
+    st.divider()
+    st.subheader("Reports")
+    left, right = st.columns(2)
+    left.download_button("Export leads CSV", export_csv(report_leads, "leads", now),
+                         file_name="contractorflow-leads.csv", mime="text/csv")
+    right.download_button("Export tasks CSV", export_csv(tasks, "tasks", now),
+                          file_name="contractorflow-tasks.csv", mime="text/csv")
+    st.caption("Exports match the selected date range and include New York UTC offsets. Spreadsheet formula-like text is escaped.")
+
 
 # CUSTOMER INQUIRIES
 elif page == "Customer Inquiries":
@@ -283,4 +289,4 @@ elif page == "Settings":
     st.write("Application: ContractorFlow")
     st.write("Database: SQLite")
     st.write("Framework: Streamlit")
-    st.write("Version: 0.3.0")
+    st.write("Version: 0.4.0")

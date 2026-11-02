@@ -21,3 +21,6 @@ backups/
 .vscode/
 .junie/
 *.log
+
+# Fictional demo databases and generated artifacts stay local.
+demo_data/
