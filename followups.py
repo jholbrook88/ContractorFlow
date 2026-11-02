@@ -1,4 +1,5 @@
 """Follow-up policy, independent of persistence and presentation."""
+
 from datetime import datetime, timedelta, timezone
 
 URGENCY_HOURS = {"Low": 72, "Normal": 24, "High": 4, "Emergency": 1}
@@ -22,8 +23,23 @@ def followup_deadline(urgency, created_at):
     return created_at + timedelta(hours=URGENCY_HOURS[urgency])
 
 
+def parse_utc(value):
+    """Original SQLite naive timestamps are UTC, never machine-local time."""
+    if not value:
+        return None
+    try:
+        parsed = value if isinstance(value, datetime) else datetime.fromisoformat(str(value))
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (ValueError, TypeError, OverflowError):
+        return None
+
+
 def task_state(task, now=None):
-    if task["completed_at"]:
+    if task.get("completed_at"):
         return "Completed"
-    due = datetime.fromisoformat(task["due_at"])
-    return "Overdue" if due < (now or utc_now()) else "Pending"
+    due = parse_utc(task.get("due_at"))
+    if due is None:
+        return "Unknown deadline"
+    return "Overdue" if due < parse_utc(now or utc_now()) else "Pending"

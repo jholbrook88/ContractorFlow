@@ -1,0 +1,20 @@
+[tool.pytest.ini_options]
+addopts = "-p no:cacheprovider"
+testpaths = ["tests"]
+
+[tool.ruff]
+exclude = [".agents", ".venv", ".idea", ".junie", "demo_data", "backups"]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.mypy]
+files = ["config.py", "delivery.py", "intake.py"]
+ignore_missing_imports = true
+check_untyped_defs = true
+follow_imports = "skip"
+
+[tool.coverage.run]
+source = ["database", "analytics", "followups", "charts", "demo", "notifications", "notification_messages", "delivery", "intake", "config", "backup"]
+omit = ["tests/*"]

@@ -1,30 +1,42 @@
 """Read-only analytics, local calendar filters and portable CSV reports."""
-from collections import Counter
+
 import csv
-from datetime import datetime, time, timedelta, timezone
 import io
+from collections import Counter
+from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
-from followups import LEAD_STATUSES, utc_now
+from followups import LEAD_STATUSES, parse_utc, utc_now
+from followups import task_state as report_task_state
 
 LOCAL_ZONE = ZoneInfo("America/New_York")
 DATE_RANGES = {"Last 7 days": 7, "Last 30 days": 30, "Last 90 days": 90, "All time": None}
-LEAD_COLUMNS = ("id", "name", "email", "phone", "service", "description", "urgency", "status", "created_at")
-TASK_COLUMNS = ("id", "lead_id", "name", "email", "phone", "service", "urgency", "lead_status", "created_at", "due_at", "completed_at", "state")
-TIME_COLUMNS = ("created_at", "due_at", "completed_at")
-
-
-def parse_utc(value):
-    """Original SQLite naive timestamps are UTC, never machine-local time."""
-    if not value:
-        return None
-    try:
-        parsed = value if isinstance(value, datetime) else datetime.fromisoformat(str(value))
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-        return parsed.astimezone(timezone.utc)
-    except (ValueError, TypeError, OverflowError):
-        return None
+LEAD_COLUMNS = (
+    "id",
+    "name",
+    "email",
+    "phone",
+    "service",
+    "description",
+    "urgency",
+    "status",
+    "created_at",
+)
+TASK_COLUMNS = (
+    "id",
+    "lead_id",
+    "name",
+    "email",
+    "phone",
+    "service",
+    "urgency",
+    "lead_status",
+    "created_at",
+    "due_at",
+    "completed_at",
+    "state",
+)
+TIME_COLUMNS = ("created_at", "due_at", "completed_at", "processed_at", "sent_at")
 
 
 def local_timestamp(value):
@@ -36,8 +48,13 @@ def local_timestamp(value):
 
 def localize_records(records):
     """Return display copies; UTC storage and caller inputs remain unchanged."""
-    return [{key: local_timestamp(value) if key in TIME_COLUMNS else value
-             for key, value in record.items()} for record in records]
+    return [
+        {
+            key: local_timestamp(value) if key in TIME_COLUMNS else value
+            for key, value in record.items()
+        }
+        for record in records
+    ]
 
 
 def filter_records(records, period="All time", now=None):
@@ -47,30 +64,25 @@ def filter_records(records, period="All time", now=None):
     now = parse_utc(now or utc_now())
     start_date = now.astimezone(LOCAL_ZONE).date() - timedelta(days=days - 1)
     start = datetime.combine(start_date, time.min, tzinfo=LOCAL_ZONE).astimezone(timezone.utc)
-    return [record for record in records
-            if (created := parse_utc(record.get("created_at"))) is not None
-            and start <= created <= now]
-
-
-def report_task_state(task, now=None):
-    if task.get("completed_at"):
-        return "Completed"
-    due = parse_utc(task.get("due_at"))
-    if due is None:
-        return "Unknown deadline"
-    return "Overdue" if due < parse_utc(now or utc_now()) else "Pending"
+    return [
+        record
+        for record in records
+        if (created := parse_utc(record.get("created_at"))) is not None and start <= created <= now
+    ]
 
 
 def calculate_kpis(leads, tasks, now=None):
     now = now or utc_now()
     states = Counter(report_task_state(task, now) for task in tasks)
     won = sum(lead.get("status") == "Won" for lead in leads)
-    return {"total_leads": len(leads),
-            "new_inquiries": sum(lead.get("status") == "New" for lead in leads),
-            "conversion_rate": won / len(leads) * 100 if leads else None,
-            "pending_tasks": len(tasks) - states["Completed"],
-            "overdue_tasks": states["Overdue"],
-            "completed_followups": states["Completed"]}
+    return {
+        "total_leads": len(leads),
+        "new_inquiries": sum(lead.get("status") == "New" for lead in leads),
+        "conversion_rate": won / len(leads) * 100 if leads else None,
+        "pending_tasks": len(tasks) - states["Completed"],
+        "overdue_tasks": states["Overdue"],
+        "completed_followups": states["Completed"],
+    }
 
 
 def category_counts(leads, field, order=()):
@@ -86,8 +98,11 @@ def pipeline_report(leads):
 def inquiry_volume(leads, period="All time", now=None):
     """Daily counts including zero days; monthly bins for spans over a year."""
     now = parse_utc(now or utc_now())
-    dates = [created.astimezone(LOCAL_ZONE).date() for lead in filter_records(leads, period, now)
-             if (created := parse_utc(lead.get("created_at"))) is not None]
+    dates = [
+        created.astimezone(LOCAL_ZONE).date()
+        for lead in filter_records(leads, period, now)
+        if (created := parse_utc(lead.get("created_at"))) is not None
+    ]
     if not dates:
         return []
     days = DATE_RANGES[period]
@@ -102,12 +117,19 @@ def inquiry_volume(leads, period="All time", now=None):
         current = start
     result = []
     while current <= end:
-        result.append({"Period": current.isoformat(), "Inquiries": counts[current],
-                       "Interval": "Month" if monthly else "Day"})
+        result.append(
+            {
+                "Period": current.isoformat(),
+                "Inquiries": counts[current],
+                "Interval": "Month" if monthly else "Day",
+            }
+        )
         if current == end:
             break
         if monthly:
-            current = current.replace(year=current.year + (current.month == 12), month=current.month % 12 + 1)
+            current = current.replace(
+                year=current.year + (current.month == 12), month=current.month % 12 + 1
+            )
         else:
             current += timedelta(days=1)
     return result
@@ -120,7 +142,9 @@ def export_csv(records, report, now=None):
     columns = LEAD_COLUMNS if report == "leads" else TASK_COLUMNS
     output = io.StringIO(newline="")
     writer = csv.writer(output)
-    writer.writerow([f"{column} (America/New_York)" if column in TIME_COLUMNS else column for column in columns])
+    writer.writerow(
+        [f"{column} (America/New_York)" if column in TIME_COLUMNS else column for column in columns]
+    )
     now = now or utc_now()
     for source in records:
         record = localize_records([source])[0]
