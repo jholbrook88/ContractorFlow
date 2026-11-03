@@ -4,7 +4,7 @@
 
 **Description**
 
-Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.
+A Python-based CRM and business automation platform for small contractors, featuring lead management, automated follow-ups, and business intelligence dashboards.
 
 **Topics**
 

@@ -50,7 +50,7 @@ Prepared: product README, architecture/schema documentation, security limitation
 
 CI definitions are locally reviewed; they have not run on GitHub. The runtime lock has been checked in the existing Windows/Python 3.14 environment, not through an independently provisioned clean installation. Other platforms are not certified. Developer-tool direct versions are pinned, but their transitive dependencies are not separately locked.
 
-Final repository description: **Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.**
+Final repository description: **A Python-based CRM and business automation platform for small contractors, featuring lead management, automated follow-ups, and business intelligence dashboards.**
 
 Final topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 
@@ -84,3 +84,6 @@ Portfolio asset update: six JPEG screenshots are included in docs/screenshots, w
 
 
 Final attribution review: the owner approved Copyright (c) 2026 Jason Holbrook and developer attribution in the README. Existing commits, author metadata and historical first-name notices remain unchanged. The approved public name is intentional; operational contact information, credentials, databases and local artifacts are excluded from the publication candidate. Publication still requires separate explicit approval.
+
+
+Post-publication review: the source repository is now public on main. The first [CI run](https://github.com/jholbrook88/ContractorFlow/actions/runs/41554224447) passed on commit d2607effa426d57d9a94be3e4cefc3390d2bc0b6. Earlier readiness and approval statements above describe the pre-publication snapshot. The repository description and eight topics were applied to GitHub as authorized. The README now includes all six approved fictional-data screenshots and no longer describes CI as unexecuted. Public application hosting and live communications remain disabled.

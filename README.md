@@ -8,6 +8,31 @@ Built with Python 3.14, Streamlit, Plotly, pandas, and SQLite. No paid service o
 
 All screenshots use isolated fictional demo data. View the [portfolio gallery and finalized repository metadata](docs/github-portfolio.md).
 
+<details>
+<summary>View all portfolio screenshots</summary>
+
+### Service demand, urgency and pipeline
+
+![Service demand, urgency and lead pipeline from fictional data](docs/screenshots/02-analytics.jpg)
+
+### Lead management
+
+![Search and filters above fictional lead records](docs/screenshots/03-lead-management.jpg)
+
+### Follow-up tasks
+
+![Fictional follow-up tasks and completion controls](docs/screenshots/04-follow-up-tasks.jpg)
+
+### Customer intake
+
+![Customer inquiry form with fictional contact details](docs/screenshots/05-customer-intake.jpg)
+
+### Notification Center
+
+![Local-only previews of fictional customer and owner notifications](docs/screenshots/06-notification-center.jpg)
+
+</details>
+
 ## Features
 
 - Validated customer inquiries and persistent submission keys to prevent repeated form submissions.
@@ -115,7 +140,7 @@ Create the destination directory first. Backup uses SQLite's snapshot API and va
 .venv\Scripts\python -m pip_audit -r requirements-lock.txt
 ```
 
-Tests use temporary databases. Coverage measures the business/storage/tooling modules; Streamlit workflows are verified separately with AppTest. Type checking currently covers configuration, delivery, and intake boundaries. CI runs these checks on Windows/Python 3.14; the workflow is prepared but has not been executed on GitHub.
+Tests use temporary databases. Coverage measures the business/storage/tooling modules; Streamlit workflows are verified separately with AppTest. Type checking currently covers configuration, delivery, and intake boundaries. CI runs these checks on Windows/Python 3.14; the [published main-branch workflow](https://github.com/jholbrook88/ContractorFlow/actions/workflows/ci.yml) has passed on GitHub.
 
 ## Security and project status
 

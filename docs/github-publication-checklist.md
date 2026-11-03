@@ -18,7 +18,7 @@ Final metadata is stored in [.github/repository-metadata.json](../.github/reposi
 
 - [x] Update LICENSE and developer attribution to the approved name Jason Holbrook; retain all existing history and attribution.
 - [ ] Approve repository name and visibility. Suggested name: `ContractorFlow`.
-- [x] Finalize description locally: Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.
+- [x] Finalize description locally: A Python-based CRM and business automation platform for small contractors, featuring lead management, automated follow-ups, and business intelligence dashboards.
 - [x] Finalize topics locally: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 - [ ] Choose a security contact or GitHub private vulnerability-reporting policy.
 - [x] Prepare and privacy-review the six fictional-data screenshots in docs/screenshots using the clean in-app browser.
