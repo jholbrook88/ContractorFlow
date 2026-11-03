@@ -16,7 +16,7 @@ Final metadata is stored in [.github/repository-metadata.json](../.github/reposi
 
 ## Final owner review
 
-- [ ] Review LICENSE, including the copyright holder shown as Jason.
+- [x] Update LICENSE and developer attribution to the approved name Jason Holbrook; retain all existing history and attribution.
 - [ ] Approve repository name and visibility. Suggested name: `ContractorFlow`.
 - [x] Finalize description locally: Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.
 - [x] Finalize topics locally: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.

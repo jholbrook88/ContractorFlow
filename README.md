@@ -123,4 +123,4 @@ This is a local application, not an authenticated multi-tenant service. It does 
 
 Operational databases, demo files, backups, secrets, local IDE configuration, development instructions, and generated review artifacts are excluded from source control. Read [security limitations](SECURITY.md), [demo capture instructions](docs/demo-walkthrough.md), and the [publication review](docs/publication-readiness.md) before sharing the repository.
 
-Licensed under the [MIT License](LICENSE). Existing Git history and attribution are retained. See the [final publication checklist](docs/github-publication-checklist.md) before publishing.
+Developed by **Jason Holbrook**. Licensed under the [MIT License](LICENSE). Existing Git history and attribution are retained. See the [final publication checklist](docs/github-publication-checklist.md) before publishing.

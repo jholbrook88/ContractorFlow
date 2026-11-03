@@ -54,7 +54,7 @@ Final repository description: **Local contractor CRM with customer intake, autom
 
 Final topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 
-The owner approved the MIT license on November 2, 2026. LICENSE contains the standard MIT text with Copyright (c) 2026 Jason. Six fictional-data screenshots have been captured in a clean in-app browser and reviewed locally; the owner can review the final gallery before publication. The security contact also remains an owner decision. The final publication checklist is [documented separately](github-publication-checklist.md).
+The owner approved the MIT license on November 2, 2026. LICENSE contains the standard MIT text with Copyright (c) 2026 Jason Holbrook. Six fictional-data screenshots have been captured in a clean in-app browser and reviewed locally; the owner can review the final gallery before publication. The security contact also remains an owner decision. The final publication checklist is [documented separately](github-publication-checklist.md).
 
 ## F. Known limitations
 
@@ -65,7 +65,7 @@ Reminder checks run on app reruns or CLI invocation; no always-running scheduler
 Before public publication, the owner must:
 
 1. Review the publication candidate, documentation, commit authorship and privacy scan scope.
-2. Completed: MIT license approved and added; verify the displayed copyright name during final owner review.
+2. Completed: MIT license approved and added; copyright attribution updated to Jason Holbrook as approved.
 3. Select reviewed fictional-data screenshots and a security contact.
 4. Approve the GitHub repository name, description, topics and visibility.
 5. Explicitly approve publishing/pushing the reviewed branch. Do not use a mirror push.
@@ -81,3 +81,6 @@ Existing commits and attribution remain intact. No authorship, provenance, licen
 
 
 Portfolio asset update: six JPEG screenshots are included in docs/screenshots, with a gallery in [github-portfolio.md](github-portfolio.md). The dashboard/charts show the original 150-row fictional snapshot; the intake and Notification Center views demonstrate an additional fictional inquiry. Images contain no operational records, browser account overlays, local paths or EXIF metadata. Repository description/topics are finalized locally in .github/repository-metadata.json; no remote settings were changed.
+
+
+Final attribution review: the owner approved Copyright (c) 2026 Jason Holbrook and developer attribution in the README. Existing commits, author metadata and historical first-name notices remain unchanged. The approved public name is intentional; operational contact information, credentials, databases and local artifacts are excluded from the publication candidate. Publication still requires separate explicit approval.
