@@ -11,9 +11,9 @@ All screenshots use isolated fictional demo data. View the [portfolio gallery an
 <details>
 <summary>View all portfolio screenshots</summary>
 
-### Service demand, urgency and pipeline
+### Service demand and urgency
 
-![Service demand, urgency and lead pipeline from fictional data](docs/screenshots/02-analytics.jpg)
+![Service demand and urgency distribution from fictional data](docs/screenshots/02-analytics.jpg)
 
 ### Lead management
 

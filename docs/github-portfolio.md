@@ -22,11 +22,11 @@ Six KPIs and the date-only inquiry timeline for the 150-inquiry, 90-day fictiona
 
 ![Dashboard KPIs and inquiry timeline for fictional customers](screenshots/01-dashboard.jpg)
 
-### Service demand, urgency and pipeline
+### Service demand and urgency
 
-The same 150 inquiries grouped by service, urgency and current lead status. Pipeline bars are independent counts, not a cumulative funnel.
+The same 150 inquiries grouped by service and urgency. The full-width capture keeps both charts and every category visible. Current lead-status counts remain available in the dashboard pipeline report.
 
-![Service demand, urgency distribution and current lead pipeline using fictional data](screenshots/02-analytics.jpg)
+![Service demand and urgency distribution using fictional data](screenshots/02-analytics.jpg)
 
 ### Lead management
 
@@ -61,3 +61,5 @@ The request creates inquiry 151 and two pending message snapshots. The owner pre
 - Privacy review: visible addresses, telephone numbers, names and project descriptions were reviewed against the fictional source. Operational storage was not used for capture.
 
 To recreate, generate a fresh demo with `python demo.py reset`, launch the printed command, and follow [the walkthrough](demo-walkthrough.md). These images are prepared for the reviewed source candidate; they have not been uploaded or published.
+
+Post-publication image correction: the analytics image was recaptured from seed 42 and the original snapshot time to replace a clipped right edge. The replacement shows the complete service and urgency panels, and its caption reflects the visible content.
