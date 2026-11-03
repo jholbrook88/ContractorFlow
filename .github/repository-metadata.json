@@ -1,0 +1,13 @@
+{
+  "description": "Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.",
+  "topics": [
+    "python",
+    "streamlit",
+    "sqlite",
+    "plotly",
+    "crm",
+    "workflow-automation",
+    "business-intelligence",
+    "small-business"
+  ]
+}

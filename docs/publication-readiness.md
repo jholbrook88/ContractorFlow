@@ -50,11 +50,11 @@ Prepared: product README, architecture/schema documentation, security limitation
 
 CI definitions are locally reviewed; they have not run on GitHub. The runtime lock has been checked in the existing Windows/Python 3.14 environment, not through an independently provisioned clean installation. Other platforms are not certified. Developer-tool direct versions are pinned, but their transitive dependencies are not separately locked.
 
-Suggested repository description: **Local contractor CRM with customer intake, follow-up automation, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.**
+Final repository description: **Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.**
 
-Suggested topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
+Final topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 
-The owner approved the MIT license on November 2, 2026. LICENSE contains the standard MIT text with Copyright (c) 2026 Jason. Select and review final screenshots before adding them to the repository. The security contact also remains an owner decision. The final publication checklist is [documented separately](github-publication-checklist.md).
+The owner approved the MIT license on November 2, 2026. LICENSE contains the standard MIT text with Copyright (c) 2026 Jason. Six fictional-data screenshots have been captured in a clean in-app browser and reviewed locally; the owner can review the final gallery before publication. The security contact also remains an owner decision. The final publication checklist is [documented separately](github-publication-checklist.md).
 
 ## F. Known limitations
 
@@ -78,3 +78,6 @@ Public hosting and live email/SMS require separate explicit approval, implementa
 Formatting and imports are standardized with Ruff. Duplicate timestamp parsing/task-state logic was consolidated. Shared configuration and intake validation have dedicated modules. Redundant comments and placeholder settings were removed. Documentation now describes behavior, contracts and limitations rather than development narration or promotional claims. Developer instructions, chats, caches, database files and generated artifacts are excluded from the publication candidate.
 
 Existing commits and attribution remain intact. No authorship, provenance, license or commit history was fabricated or rewritten. Local implementation commits describe the resulting changes. Remaining comments document invariants, security choices and non-obvious date/transaction behavior.
+
+
+Portfolio asset update: six JPEG screenshots are included in docs/screenshots, with a gallery in [github-portfolio.md](github-portfolio.md). The dashboard/charts show the original 150-row fictional snapshot; the intake and Notification Center views demonstrate an additional fictional inquiry. Images contain no operational records, browser account overlays, local paths or EXIF metadata. Repository description/topics are finalized locally in .github/repository-metadata.json; no remote settings were changed.

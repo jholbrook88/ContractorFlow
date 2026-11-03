@@ -4,6 +4,10 @@ ContractorFlow is a local CRM and workflow application for small contractors. It
 
 Built with Python 3.14, Streamlit, Plotly, pandas, and SQLite. No paid service or email account is required. Notifications are local previews; external delivery is disabled.
 
+![ContractorFlow dashboard with 150 fictional inquiries](docs/screenshots/01-dashboard.jpg)
+
+All screenshots use isolated fictional demo data. View the [portfolio gallery and finalized repository metadata](docs/github-portfolio.md).
+
 ## Features
 
 - Validated customer inquiries and persistent submission keys to prevent repeated form submissions.

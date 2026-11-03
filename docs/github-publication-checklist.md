@@ -12,14 +12,17 @@ Status: prepared locally; publication, deployment and remote pushes are not auth
 - [x] Exclude operational/demo databases, backups, secrets, local tooling and generated review artifacts.
 - [x] Prepare a source/history privacy scan and a local source archive.
 
+Final metadata is stored in [.github/repository-metadata.json](../.github/repository-metadata.json); the [portfolio gallery](github-portfolio.md) documents the selected images. These files do not apply settings to GitHub.
+
 ## Final owner review
 
 - [ ] Review LICENSE, including the copyright holder shown as Jason.
 - [ ] Approve repository name and visibility. Suggested name: `ContractorFlow`.
-- [ ] Approve description: Local contractor CRM with customer intake, follow-up automation, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.
-- [ ] Approve topics: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
+- [x] Finalize description locally: Local contractor CRM with customer intake, automated follow-ups, SQLite notification previews, and a Streamlit/Plotly analytics dashboard.
+- [x] Finalize topics locally: `python`, `streamlit`, `sqlite`, `plotly`, `crm`, `workflow-automation`, `business-intelligence`, `small-business`.
 - [ ] Choose a security contact or GitHub private vulnerability-reporting policy.
-- [ ] Select screenshots showing fictional data only; use a clean browser profile without personal overlays.
+- [x] Prepare and privacy-review the six fictional-data screenshots in docs/screenshots using the clean in-app browser.
+- [ ] Complete final owner review of the screenshot gallery before the approved publication.
 - [ ] Review the candidate commit, tracked-file list and normal branch/tag history. Confirm no private customer data or credentials appear.
 - [ ] Accept the documented limitations: local trust boundary, no authentication, no live delivery, no production worker, and no validated public hosting.
 - [ ] Explicitly authorize the intended GitHub publication and push destination.

@@ -9,6 +9,9 @@
 7. Open Notification Center, inspect confirmation and owner messages, and process local previews. Explain that no email is sent.
 8. Download an explicit lead/task report. Do not use an operational export in the presentation.
 
-For screenshots, use a browser profile without unrelated extensions or personal account overlays. Capture the dashboard overview, service/urgency charts, lead/task management, and a local notification preview. Use a readable desktop width and also inspect a narrow viewport. Avoid browser chrome, unrelated tabs, local filesystem paths and genuine contact details. Keep the demo banner visible. Review every image before adding it to Git.
+For screenshots, use a browser profile without unrelated extensions or personal account overlays. Capture the dashboard overview, service/urgency charts, lead/task management, and a local notification preview. Use a readable desktop width and also inspect a narrow viewport. Avoid browser chrome, unrelated tabs, local filesystem paths and genuine contact details. Keep the demo banner visible in workspace captures. A chart-detail crop may omit navigation and the banner when its gallery caption explicitly identifies the fictional dataset. Review every image before adding it to Git.
 
 Generated review screenshots belong in the ignored `artifacts/` directory until the owner selects publication assets. No screenshot is published automatically.
+
+
+The selected [portfolio gallery](github-portfolio.md) contains six reviewed captures in docs/screenshots. These selected assets are tracked locally for the publication candidate; intermediate captures and databases remain ignored. The analytics image is a native screenshot crop of the real charts. No synthetic UI, compositing or customer-data substitution was used.
