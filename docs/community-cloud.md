@@ -1,19 +1,19 @@
 # Streamlit Community Cloud portfolio demo
 
-Status: prepared locally for review; not pushed or deployed. The requested subdomain is `contractorflow`, subject to availability. No live URL has been verified.
+Status: deployed at [contractorflow.streamlit.app](https://contractorflow.streamlit.app/). The read-only demo was merged through [pull request #1](https://github.com/jholbrook88/ContractorFlow/pull/1) after Windows and Ubuntu CI passed. A separate browser session loaded the dashboard without signing in.
 
 ## Deployment fields
 
 | Field | Select |
 | --- | --- |
 | Repository | `jholbrook88/ContractorFlow` |
-| Branch | `feat/public-portfolio-demo`, after the user approves pushing this branch |
+| Branch | `main` |
 | Main file path | `cloud_demo/streamlit_app.py` |
 | Advanced settings: Python | **3.14** |
-| App URL / subdomain | `contractorflow`, if available |
+| App URL / subdomain | `contractorflow` |
 | Secrets | Leave empty; none are needed |
 
-Do not click Deploy while the approved files are still only local. Do not select `main.py` for a public demo. The existing remote main branch does not yet contain this dedicated entry point. If the user later approves merging these changes into remote main, select main instead of the feature branch.
+The deployed entry point is `cloud_demo/streamlit_app.py`, not `main.py`. The feature branch remains available as development history; hosting follows the reviewed main branch.
 
 ## Data and notification boundaries
 
@@ -43,7 +43,7 @@ To preview locally while keeping the server on loopback:
 
 The supported deployment target is CPython 3.14, matching the tested development environment. Select it explicitly; do not rely on Community Cloud's default. `cloud_demo/requirements.txt` references the existing pinned `requirements-lock.txt`. Streamlit 1.66.1 was confirmed to be the latest available version during this preparation. No new runtime packages, apt packages, credentials, databases or external APIs are required.
 
-All 35 pinned runtime packages successfully resolved/downloaded as CPython 3.14 compatible Linux x86-64 wheels or universal wheels. This proves wheel availability and dependency resolution, not that the application has run on Debian. Docker was unavailable and WSL was not installed, so Linux execution and the actual Cloud build remain unverified. CI is now configured for both Windows and Ubuntu with Python 3.14; the new Ubuntu job has not run on GitHub because nothing has been pushed.
+All 35 pinned runtime packages successfully resolved/downloaded as CPython 3.14 compatible Linux x86-64 wheels or universal wheels. This proves wheel availability and dependency resolution, not that the application has run on Debian. Docker was unavailable and WSL was not installed, so local Linux execution was not attempted. Subsequent GitHub CI passed on both Windows and Ubuntu with Python 3.14, including all 59 tests and startup checks. The Community Cloud build then succeeded and the deployed application rendered in the browser.
 
 Community Cloud runs from the repository root and loads script-level configuration after root configuration. Its hosting platform can override configuration, including telemetry and error display. The demo requires no application-managed secrets, but Streamlit/GitHub still provide the hosting platform and its normal access logs/telemetry. Do not claim the hosted platform is offline or collects no connection metadata.
 
@@ -71,18 +71,18 @@ Reproduce the checks:
 
 The repository scan checks tracked files and reachable normal history for blocked artifacts and credential patterns. It is not proof against every possible secret; do not add databases, secrets, backups or review output to the approved diff.
 
-## Connect and deploy, only after approval
+## Deployment procedure for future setup or recovery
 
-1. Review the branch diff and approve committing/pushing it to the existing repository. No new GitHub repository is needed. Wait for the Windows and Ubuntu CI jobs on that pushed revision to pass before hosting it.
+1. For future changes, review and approve the diff before pushing/merging it. No new GitHub repository is needed. Require the Windows and Ubuntu CI jobs on that revision to pass before hosting it.
 2. In the existing Streamlit Community Cloud deployment screen, connect your GitHub account if requested and select the repository, approved branch and exact file path in the table above. These owner setup steps require an account; public visitors do not.
 3. Enter `contractorflow` for the subdomain. If unavailable, stop and agree on another name; do not claim the requested URL is reserved.
 4. Open Advanced settings, choose Python 3.14 and leave Secrets empty. If 3.14 is not offered, stop and revalidate a supported target rather than silently changing versions.
 5. Only after deployment approval, select Deploy and inspect the build/startup logs. Check that no secret or operational database is configured or copied.
 6. In app settings, open Sharing and choose public visibility. Verify the actual URL in a private/incognito browser window while signed out of GitHub and Streamlit. Confirm the dashboard appears without a visitor account.
-7. In two independent browser sessions, compare filters, navigate every page, preview messages and download the fictional reports. Check the Demo Mode banner, mobile layout, chart interactions and absence of editable records. AppTest cannot certify the actual Cloud proxy or frontend display.
+7. In two independent browser sessions, compare filters, navigate every page, preview messages and download the fictional reports. Browser navigation and a cross-session filter check passed for the initial deployment; CSV contents are covered by automated export tests, while a hosted download has not been independently inspected. Check the Demo Mode banner, mobile layout, chart interactions and absence of editable records. AppTest cannot certify the actual Cloud proxy or frontend display.
 8. Record the deployed revision and actual URL. Only then add the working live-demo link to the repository README and, after separate review, the profile README. Do not insert a guessed link.
 
-Community Cloud may sleep or restart an inactive application. Verify its current wake-up behavior and any account prompts in the signed-out check before advertising completely frictionless access. This demo does not promise an uptime guarantee. No deployment, public-browser verification or subdomain reservation has occurred yet.
+Community Cloud may sleep or restart an inactive application. Initial public access was verified in a browser session separate from the signed-in owner session. Wake-up after prolonged inactivity, broad mobile/accessibility coverage and sustained load testing remain unverified. This demo does not promise an uptime guarantee.
 
 Official references:
 
