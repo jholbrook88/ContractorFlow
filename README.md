@@ -44,6 +44,24 @@ All screenshots use isolated fictional demo data. View the [portfolio gallery an
 - Customer confirmations, owner notifications, and upcoming/overdue reminders in a durable local outbox.
 - A separate 150-inquiry fictional dataset for demonstrations.
 
+## Live portfolio demo
+
+**Not deployed yet.** The live link will be added here only after deployment and public-access verification. The requested subdomain is `contractorflow`, subject to availability; there is no confirmed live URL yet.
+
+The prepared browser demo uses 150 generated fictional customers. Visitors can explore the dashboard, filter leads and follow-ups, read notification previews, and download fictional CSV reports. No Python installation, local files or visitor account will be required once the app is made public.
+
+Start with the dashboard, change the date range, inspect the current lead pipeline, then compare open and completed follow-ups. The Notification previews page shows confirmations, owner alerts and applicable reminders. Some filters can legitimately return no results.
+
+This demo is read-only: customer submissions, status changes, task completion and message processing are unavailable. Filters affect only your view. No email or SMS is sent, and the demo never opens the local operational database. The original local application below retains its editable workflows.
+
+Deployment entry point: `cloud_demo/streamlit_app.py`. Select **Python 3.14** in Community Cloud. See [deployment instructions and remaining hosting checks](docs/community-cloud.md). Do not deploy `main.py` as the public demo.
+
+For a local preview using the cloud configuration, explicitly retain loopback binding:
+
+```powershell
+.venv\Scripts\python -m streamlit run cloud_demo/streamlit_app.py --server.address=127.0.0.1
+```
+
 ## Installation
 
 From the project directory on Windows:
@@ -140,7 +158,7 @@ Create the destination directory first. Backup uses SQLite's snapshot API and va
 .venv\Scripts\python -m pip_audit -r requirements-lock.txt
 ```
 
-Tests use temporary databases. Coverage measures the business/storage/tooling modules; Streamlit workflows are verified separately with AppTest. Type checking currently covers configuration, delivery, and intake boundaries. CI runs these checks on Windows/Python 3.14; the [published main-branch workflow](https://github.com/jholbrook88/ContractorFlow/actions/workflows/ci.yml) has passed on GitHub.
+Tests use temporary databases. Coverage measures the business/storage/tooling modules; Streamlit workflows are verified separately with AppTest. Type checking currently covers configuration, delivery, and intake boundaries. CI is configured to run these checks on Windows and Ubuntu with Python 3.14; the new Ubuntu job awaits its first approved push; the [published main-branch workflow](https://github.com/jholbrook88/ContractorFlow/actions/workflows/ci.yml) has passed on GitHub.
 
 ## Security and project status
 

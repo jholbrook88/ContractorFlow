@@ -30,62 +30,65 @@ def connection():
 def initialize_database():
     """Idempotent additive migration; intentionally no historical task backfill."""
     with connection() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS leads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                phone TEXT,
-                service TEXT NOT NULL,
-                description TEXT,
-                urgency TEXT NOT NULL,
-                status TEXT DEFAULT 'New',
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS followup_tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                lead_id INTEGER NOT NULL UNIQUE REFERENCES leads(id),
-                created_at TEXT NOT NULL,
-                due_at TEXT NOT NULL,
-                completed_at TEXT
-            )
-        """)
-        conn.execute("""CREATE INDEX IF NOT EXISTS idx_followup_pending_due
-                        ON followup_tasks(completed_at, due_at)""")
+        initialize_schema(conn)
 
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS notification_outbox (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_key TEXT NOT NULL UNIQUE,
-                kind TEXT NOT NULL,
-                lead_id INTEGER NOT NULL REFERENCES leads(id),
-                task_id INTEGER REFERENCES followup_tasks(id),
-                recipient TEXT NOT NULL,
-                subject TEXT NOT NULL,
-                body TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'Pending'
-                    CHECK(status IN ('Pending','Previewed','Sent','Failed','Cancelled')),
-                created_at TEXT NOT NULL,
-                processed_at TEXT,
-                sent_at TEXT,
-                reminder_due_at TEXT,
-                attempts INTEGER NOT NULL DEFAULT 0,
-                receipt TEXT,
-                last_error TEXT,
-                delivery_mode TEXT NOT NULL DEFAULT 'local' CHECK(delivery_mode='local')
-            )
-        """)
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_outbox_status ON notification_outbox(status, id)"
+
+def initialize_schema(conn):
+    """Apply additive schema statements to an explicitly supplied SQLite connection."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            phone TEXT,
+            service TEXT NOT NULL,
+            description TEXT,
+            urgency TEXT NOT NULL,
+            status TEXT DEFAULT 'New',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS followup_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lead_id INTEGER NOT NULL UNIQUE REFERENCES leads(id),
+            created_at TEXT NOT NULL,
+            due_at TEXT NOT NULL,
+            completed_at TEXT
+        )
+    """)
+    conn.execute("""CREATE INDEX IF NOT EXISTS idx_followup_pending_due
+                    ON followup_tasks(completed_at, due_at)""")
 
-        conn.execute("""CREATE TABLE IF NOT EXISTS intake_submissions (
-            submission_key TEXT PRIMARY KEY,
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS notification_outbox (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_key TEXT NOT NULL UNIQUE,
+            kind TEXT NOT NULL,
             lead_id INTEGER NOT NULL REFERENCES leads(id),
-            fingerprint TEXT NOT NULL
-        )""")
+            task_id INTEGER REFERENCES followup_tasks(id),
+            recipient TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            body TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'Pending'
+                CHECK(status IN ('Pending','Previewed','Sent','Failed','Cancelled')),
+            created_at TEXT NOT NULL,
+            processed_at TEXT,
+            sent_at TEXT,
+            reminder_due_at TEXT,
+            attempts INTEGER NOT NULL DEFAULT 0,
+            receipt TEXT,
+            last_error TEXT,
+            delivery_mode TEXT NOT NULL DEFAULT 'local' CHECK(delivery_mode='local')
+        )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_outbox_status ON notification_outbox(status, id)")
+
+    conn.execute("""CREATE TABLE IF NOT EXISTS intake_submissions (
+        submission_key TEXT PRIMARY KEY,
+        lead_id INTEGER NOT NULL REFERENCES leads(id),
+        fingerprint TEXT NOT NULL
+    )""")
 
 
 def add_lead(name, email, phone, service, description, urgency, submission_key=None):

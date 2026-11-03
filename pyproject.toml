@@ -16,5 +16,5 @@ check_untyped_defs = true
 follow_imports = "skip"
 
 [tool.coverage.run]
-source = ["database", "analytics", "followups", "charts", "demo", "notifications", "notification_messages", "delivery", "intake", "config", "backup"]
+source = ["database", "analytics", "followups", "charts", "demo", "notifications", "notification_messages", "delivery", "intake", "config", "backup", "dashboard", "public_demo"]
 omit = ["tests/*"]
