@@ -4,7 +4,10 @@ permissions:
   contents: read
 jobs:
   verify:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,4 +22,5 @@ jobs:
       - run: python -m ruff format --check .
       - run: python -m mypy
       - run: python -m pytest --cov --cov-report=term-missing --cov-fail-under=85
+      - run: python scripts/check_cloud_startup.py
       - run: python -m pip_audit -r requirements-lock.txt

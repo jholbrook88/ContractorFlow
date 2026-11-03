@@ -98,66 +98,65 @@ def generate_demo(path=DEFAULT_PATH, seed=42, as_of=None):
     # Exclusive creation: never replace operational data or an existing demo.
     with path.open("xb"):
         pass
-    rng = random.Random(seed)
-    local = reference.astimezone(LOCAL_ZONE)
     with selected_database(path):
         database.initialize_database()
         with database.connection() as conn:
-            conn.execute(
-                "CREATE TABLE demo_metadata (seed INTEGER, as_of TEXT, inquiry_count INTEGER)"
-            )
-            conn.execute(
-                "INSERT INTO demo_metadata VALUES (?, ?, 150)", (seed, timestamp(reference))
-            )
-            for index in range(150):
-                # 90 guaranteed calendar days, plus 60 weighted toward recent weeks.
-                age = index if index < 90 else int(rng.triangular(0, 89, 15))
-                day = local.date() - timedelta(days=age)
-                created_local = datetime.combine(day, datetime.min.time(), LOCAL_ZONE).replace(
-                    hour=rng.randint(8, 17), minute=rng.randrange(60)
-                )
-                if age == 0:
-                    midnight = datetime.combine(day, datetime.min.time(), LOCAL_ZONE)
-                    created_local = local - (local - midnight) * rng.random()
-                created = created_local.astimezone(timezone.utc)
-                service = rng.choices(SERVICES, weights=(25, 19, 21, 11, 9, 12, 3))[0]
-                urgency = rng.choices(
-                    ("Low", "Normal", "High", "Emergency"), weights=(17, 59, 20, 4)
-                )[0]
-                status = rng.choices(
-                    ("New", "Contacted", "Quoted", "Won", "Lost"),
-                    weights=(65, 25, 8, 1, 1) if age < 4 else (4, 15, 25, 42, 14),
-                )[0]
-                due = followup_deadline(urgency, created)
-                completion = None
-                if (
-                    status in ("Quoted", "Won", "Lost")
-                    or (status == "Contacted" and rng.random() < 0.8)
-                    or (status == "New" and rng.random() < 0.1)
-                ):
-                    completed = min(reference, created + timedelta(hours=rng.uniform(0.25, 40)))
-                    completion = timestamp(completed)
-                name = f"{FIRST[index % len(FIRST)]} {LAST[index // len(FIRST)]}"
-                cursor = conn.execute(
-                    """INSERT INTO leads
-                    (name,email,phone,service,description,urgency,status,created_at)
-                    VALUES (?,?,?,?,?,?,?,?)""",
-                    (
-                        name,
-                        f"customer{index + 1:03d}@example.invalid",
-                        f"202-555-{100 + index % 100:04d}",
-                        service,
-                        "[FICTIONAL DEMO] " + DESCRIPTIONS[SERVICES.index(service)],
-                        urgency,
-                        status,
-                        timestamp(created),
-                    ),
-                )
-                conn.execute(
-                    "INSERT INTO followup_tasks (lead_id,created_at,due_at,completed_at) VALUES (?,?,?,?)",
-                    (cursor.lastrowid, timestamp(created), timestamp(due), completion),
-                )
+            populate_demo(conn, seed, reference)
     return path
+
+
+def populate_demo(conn, seed, reference):
+    """Seed fictional records into a supplied connection, without selecting any file."""
+    rng = random.Random(seed)
+    local = reference.astimezone(LOCAL_ZONE)
+    conn.execute("CREATE TABLE demo_metadata (seed INTEGER, as_of TEXT, inquiry_count INTEGER)")
+    conn.execute("INSERT INTO demo_metadata VALUES (?, ?, 150)", (seed, timestamp(reference)))
+    for index in range(150):
+        # 90 guaranteed calendar days, plus 60 weighted toward recent weeks.
+        age = index if index < 90 else int(rng.triangular(0, 89, 15))
+        day = local.date() - timedelta(days=age)
+        created_local = datetime.combine(day, datetime.min.time(), LOCAL_ZONE).replace(
+            hour=rng.randint(8, 17), minute=rng.randrange(60)
+        )
+        if age == 0:
+            midnight = datetime.combine(day, datetime.min.time(), LOCAL_ZONE)
+            created_local = local - (local - midnight) * rng.random()
+        created = created_local.astimezone(timezone.utc)
+        service = rng.choices(SERVICES, weights=(25, 19, 21, 11, 9, 12, 3))[0]
+        urgency = rng.choices(("Low", "Normal", "High", "Emergency"), weights=(17, 59, 20, 4))[0]
+        status = rng.choices(
+            ("New", "Contacted", "Quoted", "Won", "Lost"),
+            weights=(65, 25, 8, 1, 1) if age < 4 else (4, 15, 25, 42, 14),
+        )[0]
+        due = followup_deadline(urgency, created)
+        completion = None
+        if (
+            status in ("Quoted", "Won", "Lost")
+            or (status == "Contacted" and rng.random() < 0.8)
+            or (status == "New" and rng.random() < 0.1)
+        ):
+            completed = min(reference, created + timedelta(hours=rng.uniform(0.25, 40)))
+            completion = timestamp(completed)
+        name = f"{FIRST[index % len(FIRST)]} {LAST[index // len(FIRST)]}"
+        cursor = conn.execute(
+            """INSERT INTO leads
+            (name,email,phone,service,description,urgency,status,created_at)
+            VALUES (?,?,?,?,?,?,?,?)""",
+            (
+                name,
+                f"customer{index + 1:03d}@example.invalid",
+                f"202-555-{100 + index % 100:04d}",
+                service,
+                "[FICTIONAL DEMO] " + DESCRIPTIONS[SERVICES.index(service)],
+                urgency,
+                status,
+                timestamp(created),
+            ),
+        )
+        conn.execute(
+            "INSERT INTO followup_tasks (lead_id,created_at,due_at,completed_at) VALUES (?,?,?,?)",
+            (cursor.lastrowid, timestamp(created), timestamp(due), completion),
+        )
 
 
 def launch_demo(path=DEFAULT_PATH):
