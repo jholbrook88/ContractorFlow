@@ -10,4 +10,26 @@ showErrorDetails = "none"
 toolbarMode = "minimal"
 
 [theme]
+base = "light"
 primaryColor = "#2563eb"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f6fa"
+textColor = "#172b4d"
+borderColor = "#dce3ee"
+baseRadius = "0.5rem"
+showWidgetBorder = true
+showSidebarBorder = true
+paddingTop = "2rem"
+paddingBottom = "2rem"
+headingFontSizes = ["2rem", "1.4rem", "1.1rem"]
+metricValueFontSize = "1.8rem"
+
+[theme.sidebar]
+backgroundColor = "#172b4d"
+secondaryBackgroundColor = "#203858"
+textColor = "#ffffff"
+primaryColor = "#93c5fd"
+linkColor = "#b8d8ff"
+borderColor = "#3a506f"
+paddingTop = "2rem"
+headingFontSizes = ["1.5rem", "1.25rem", "1.1rem"]

@@ -4,7 +4,7 @@ ContractorFlow is a local CRM and workflow application for small contractors. It
 
 Built with Python 3.14, Streamlit, Plotly, pandas, and SQLite. No paid service or email account is required. Notifications are local previews; external delivery is disabled.
 
-![ContractorFlow dashboard with 150 fictional inquiries](docs/screenshots/01-dashboard.jpg)
+![ContractorFlow CRM overview with fictional requests and follow-ups](docs/screenshots/07-crm-overview.jpg)
 
 All screenshots use isolated fictional demo data. View the [portfolio gallery and finalized repository metadata](docs/github-portfolio.md).
 
@@ -39,7 +39,7 @@ All screenshots use isolated fictional demo data. View the [portfolio gallery an
 - Searchable lead records with status filters, sorting, and New / Contacted / Quoted / Won / Lost lifecycle states.
 - Transactional follow-up creation: Emergency 1 hour, High 4 hours, Normal 24 hours, Low 72 hours.
 - Pending, overdue, and completed task views with completion timestamps.
-- Six dashboard KPIs, follow-up completion rate, service/urgency/status charts, pipeline reporting, and inquiry volume.
+- A CRM overview with open and overdue follow-ups, request status, win/completion rates, and activity charts.
 - New York calendar filters, UTC storage, and CSV reports with spreadsheet formula escaping.
 - Customer confirmations, owner notifications, and upcoming/overdue reminders in a durable local outbox.
 - A separate 150-inquiry fictional dataset for demonstrations.
@@ -50,7 +50,7 @@ All screenshots use isolated fictional demo data. View the [portfolio gallery an
 
 The browser demo uses 150 generated fictional customers. Visitors can explore the dashboard, filter leads and follow-ups, read notification previews, and download fictional CSV reports. Visitors do not need Python, local files or an account to explore the public demo.
 
-Start with the dashboard, change the date range, inspect the current lead pipeline, then compare open and completed follow-ups. The Notification previews page shows confirmations, owner alerts and applicable reminders. Some filters can legitimately return no results.
+Start with Overview to see open follow-ups and the request pipeline. Customers & requests lets you search and inspect individual requests; Follow-ups shows open, overdue, and completed items. Messages contains sample confirmations, owner alerts, and reminders. Activity charts and CSV downloads remain on Overview. Some filters can legitimately return no results.
 
 This demo is read-only: customer submissions, status changes, task completion and message processing are unavailable. Filters affect only your view. No email or SMS is sent, and the demo never opens the local operational database. The original local application below retains its editable workflows.
 

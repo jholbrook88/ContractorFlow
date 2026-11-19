@@ -123,7 +123,8 @@ def test_notifications_are_fictional_snapshots_without_delivery(safe_demo):
 def test_public_pages_start_and_never_offer_writes(safe_demo):
     app = AppTest.from_file(str(ENTRY), default_timeout=15).run()
     assert not app.exception
-    assert any("Demo Mode" in notice.value and "fictional" in notice.value for notice in app.info)
+    assert app.title[0].value == "Business overview"
+    assert any("Fictional customer information" in notice.value for notice in app.caption)
     assert app.metric[0].value == "150"
     assert len(app.get("plotly_chart")) == 4
     assert len(app.get("download_button")) == 2
@@ -131,10 +132,10 @@ def test_public_pages_start_and_never_offer_writes(safe_demo):
         app.selectbox[0].set_value(period).run()
         assert not app.exception
     for page in [
-        "Lead management",
-        "Follow-up tasks",
-        "Notification previews",
-        "Customer intake",
+        "Customers & requests",
+        "Follow-ups",
+        "Messages",
+        "Intake example",
         "About this demo",
     ]:
         app.sidebar.radio[0].set_value(page).run()
@@ -146,12 +147,12 @@ def test_public_pages_start_and_never_offer_writes(safe_demo):
 
 def test_filters_are_separate_between_visitors_and_reruns(safe_demo):
     first = AppTest.from_file(str(ENTRY), default_timeout=15).run()
-    first.sidebar.radio[0].set_value("Lead management").run()
+    first.sidebar.radio[0].set_value("Customers & requests").run()
     first.text_input[0].set_value("No matching fictional customer").run()
     assert not first.dataframe
     second = AppTest.from_file(str(ENTRY), default_timeout=15).run()
     assert second.metric[0].value == "150"
-    second.sidebar.radio[0].set_value("Lead management").run()
+    second.sidebar.radio[0].set_value("Customers & requests").run()
     assert len(second.dataframe[0].value) == 150
     assert second.text_input[0].value == ""
     first.text_input[0].set_value("").run()

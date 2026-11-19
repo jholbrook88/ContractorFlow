@@ -79,7 +79,7 @@ The repository scan checks tracked files and reachable normal history for blocke
 4. Open Advanced settings, choose Python 3.14 and leave Secrets empty. If 3.14 is not offered, stop and revalidate a supported target rather than silently changing versions.
 5. Only after deployment approval, select Deploy and inspect the build/startup logs. Check that no secret or operational database is configured or copied.
 6. In app settings, open Sharing and choose public visibility. Verify the actual URL in a private/incognito browser window while signed out of GitHub and Streamlit. Confirm the dashboard appears without a visitor account.
-7. In two independent browser sessions, compare filters, navigate every page, preview messages and download the fictional reports. Browser navigation and a cross-session filter check passed for the initial deployment; CSV contents are covered by automated export tests, while a hosted download has not been independently inspected. Check the Demo Mode banner, mobile layout, chart interactions and absence of editable records. AppTest cannot certify the actual Cloud proxy or frontend display.
+7. In two independent browser sessions, compare filters, navigate every page, preview messages and download the fictional reports. Browser navigation and a cross-session filter check passed for the initial deployment; CSV contents are covered by automated export tests, while a hosted download has not been independently inspected. Check the fictional-data notice, mobile layout, chart interactions and absence of editable records. AppTest cannot certify the actual Cloud proxy or frontend display.
 8. Record the deployed revision and actual URL. Only then add the working live-demo link to the repository README and, after separate review, the profile README. Do not insert a guessed link.
 
 Community Cloud may sleep or restart an inactive application. Initial public access was verified in a browser session separate from the signed-in owner session. Wake-up after prolonged inactivity, broad mobile/accessibility coverage and sustained load testing remain unverified. This demo does not promise an uptime guarantee.
@@ -90,3 +90,10 @@ Official references:
 - [Repository and entry-point configuration](https://docs.streamlit.io/deploy/streamlit-community-cloud/status)
 - [Dependency files](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies)
 - [Public sharing settings](https://docs.streamlit.io/deploy/streamlit-community-cloud/share-your-app)
+
+
+## CRM presentation cleanup — November 19, 2026
+
+A focused interface pass keeps the existing blue theme and adds a navy sidebar, compact spacing, plain navigation labels, customer-friendly table headings, and a Business overview. Open follow-ups (overdue first) and current pipeline counts appear before the detailed request table. The four existing charts are under Activity & charts; the CSV exports and metric definitions remain available. Snapshot and implementation details are collapsed on About this demo. No dependencies, data-generation rules, SQL permissions, storage, delivery settings, or write capabilities changed.
+
+Local verification: all 59 tests and 7 subtests passed with 92.61% coverage; Ruff, formatting, mypy, and the localhost cloud startup probe passed. Browser checks covered customer search, desktop and 390px layout, and both actual CSV downloads (150 fictional records each). Public demo boundaries remain unchanged.

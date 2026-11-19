@@ -17,11 +17,8 @@ st.set_page_config(
     page_title="ContractorFlow | Portfolio demo", page_icon=":material/handyman:", layout="wide"
 )
 st.sidebar.title("ContractorFlow")
-st.sidebar.caption("Business automation for small contractors")
-st.info(
-    "Demo Mode · All 150 customers and their contact details are fictional. This demonstration is read-only. No messages are sent.",
-    icon=":material/science:",
-)
+st.sidebar.caption("A small CRM for contractors")
+st.caption(":material/science: Demo workspace · Fictional customer information · Read-only")
 
 
 @st.cache_data(ttl=3600, max_entries=1, show_spinner=False)
@@ -32,65 +29,68 @@ def snapshot():
 with st.spinner("Preparing the fictional workspace..."):
     data = snapshot()
 leads, tasks, messages, reference = data["leads"], data["tasks"], data["messages"], data["as_of"]
-st.sidebar.caption(
-    f"Snapshot: {local_timestamp(reference)} (America/New_York). Reports use this same time so deadlines and counts stay consistent while you explore."
-)
 page = st.sidebar.radio(
-    "Explore the demo",
+    "Workspace",
     [
-        "Dashboard",
-        "Lead management",
-        "Follow-up tasks",
-        "Notification previews",
-        "Customer intake",
+        "Overview",
+        "Customers & requests",
+        "Follow-ups",
+        "Messages",
+        "Intake example",
         "About this demo",
     ],
 )
 st.sidebar.markdown("[View source on GitHub](https://github.com/jholbrook88/ContractorFlow)")
-st.sidebar.caption(
-    "Filters affect only your view. Changes and customer submissions are unavailable in the public demo."
-)
 
-if page == "Dashboard":
+if page == "Overview":
     render_dashboard(leads, tasks, reference)
-elif page == "Lead management":
-    st.title("Lead management")
-    st.caption(
-        "Explore fictional inquiries across New, Contacted, Quoted, Won and Lost. Status editing is available in the local application."
-    )
-    search = st.text_input("Search fictional leads", placeholder="Customer name or service")
-    statuses = st.multiselect("Lead status", ["New", "Contacted", "Quoted", "Won", "Lost"])
+elif page == "Customers & requests":
+    st.title("Customers & requests")
+    st.caption("Find a customer, check their request, and see where it stands.")
+    search_col, status_col = st.columns([2, 1])
+    with search_col:
+        search = st.text_input("Search customers", placeholder="Customer name or service")
+    with status_col:
+        statuses = st.multiselect("Request status", ["New", "Contacted", "Quoted", "Won", "Lost"])
     visible = [
         lead
         for lead in leads
         if (not statuses or lead["status"] in statuses)
         and search.strip().casefold() in f"{lead['name']} {lead['service']}".casefold()
     ]
-    st.caption(f"{len(visible)} of 150 fictional inquiries")
+    st.caption(f"{len(visible)} of {len(leads)} requests")
     if visible:
         st.dataframe(
             pd.DataFrame(localize_records(visible)),
+            column_order=["id", "name", "service", "status", "urgency", "created_at"],
+            column_config={
+                "id": "Request #",
+                "name": "Customer",
+                "service": "Service",
+                "status": "Status",
+                "urgency": "Priority",
+                "created_at": "Received (New York)",
+            },
             hide_index=True,
             alt="Fictional customer inquiries matching your filters",
         )
         selected = st.selectbox(
-            "Inspect an inquiry",
+            "Open a request",
             visible,
             format_func=lambda lead: f"#{lead['id']} · {lead['name']} · {lead['service']}",
         )
         with st.container(border=True):
             st.subheader(f"{selected['service']} request")
             st.write(selected["description"])
-            st.caption(f"Urgency: {selected['urgency']} | Current status: {selected['status']}")
-            st.button("Status editing is unavailable in this demo", disabled=True)
+            st.caption(f"Priority: {selected['urgency']} · Status: {selected['status']}")
+            st.write(f"**Email:** {selected['email']}  \n**Phone:** {selected['phone']}")
+            st.button("Update status", disabled=True, help="Editing is available in the local app.")
     else:
         st.info("No inquiries match. Clear your search or choose another status.")
-elif page == "Follow-up tasks":
-    st.title("Follow-up tasks")
-    st.caption(
-        "Deadlines follow the same urgency rules as the local application: Emergency 1 hour, High 4 hours, Normal 24 hours, Low 72 hours. Completion does not change a lead status."
-    )
-    state = st.selectbox("Show tasks", ["Open", "Overdue", "Completed", "All"])
+elif page == "Follow-ups":
+    st.title("Follow-ups")
+    st.caption("See who needs a response and when to follow up.")
+    state = st.selectbox("Show follow-ups", ["Open", "Overdue", "Completed", "All"])
     visible = [dict(task, state=report_task_state(task, reference)) for task in tasks]
     visible = [
         task
@@ -102,17 +102,29 @@ elif page == "Follow-up tasks":
     if visible:
         st.dataframe(
             pd.DataFrame(localize_records(visible)),
+            column_order=["name", "service", "state", "due_at", "completed_at"],
+            column_config={
+                "name": "Customer",
+                "service": "Service",
+                "state": "Status",
+                "due_at": "Follow up by (New York)",
+                "completed_at": "Completed (New York)",
+            },
             hide_index=True,
             alt="Fictional follow-up deadlines and completion outcomes",
         )
     else:
         st.info("No follow-ups match this view.")
-    st.button("Task completion is unavailable in this demo", disabled=True)
-elif page == "Notification previews":
-    st.title("Notification previews")
-    st.info(
-        "Fictional message history only. Previewed means a local preview, never an email or text delivery. There is no delivery provider in this demo."
-    )
+    st.button("Mark as complete", disabled=True, help="Editing is available in the local app.")
+    with st.expander("How follow-up dates work"):
+        st.write(
+            "Follow-up deadlines depend on priority: Emergency 1 hour, High 4 hours, "
+            "Normal 24 hours, and Low 72 hours. Open includes overdue items. "
+            "Completing a follow-up does not change the request's status."
+        )
+elif page == "Messages":
+    st.title("Messages")
+    st.caption("Sample confirmations, owner alerts, and follow-up reminders. Nothing is sent.")
     kinds = st.multiselect(
         "Message type",
         ["Customer confirmation", "Owner inquiry", "Upcoming reminder", "Overdue reminder"],
@@ -127,49 +139,67 @@ elif page == "Notification previews":
             alt="Fictional message history; no messages were sent",
         )
         message = st.selectbox(
-            "Read a preview",
+            "Open a message",
             visible,
             format_func=lambda message: f"#{message['id']} · {message['subject']}",
         )
         with st.container(border=True):
             st.subheader(message["subject"])
-            st.caption(f"Fictional recipient: {message['recipient']}")
+            st.caption(f"To: {message['recipient']} · Preview only")
             st.text(message["body"])
     else:
         st.info("No message previews match this filter.")
-elif page == "Customer intake":
-    st.title("Customer intake")
+elif page == "Intake example":
+    st.title("Intake example")
     st.write(
-        "In the local application, submitting an inquiry creates a lead, an urgency-based follow-up and two local message snapshots in one transaction."
-    )
-    st.info(
-        "Submissions are disabled here. Please do not enter real customer details. This page shows an existing fictional inquiry instead."
+        "A customer sends a request. Their details stay together, a follow-up is scheduled, "
+        "and confirmation and owner-alert messages are prepared."
     )
     example = leads[0]
     st.dataframe(
         pd.DataFrame([example])[["name", "email", "phone", "service", "description", "urgency"]],
+        column_config={
+            "name": "Customer",
+            "email": "Email",
+            "phone": "Phone",
+            "service": "Service",
+            "description": "Request details",
+            "urgency": "Priority",
+        },
         hide_index=True,
         alt="Example fictional customer intake",
     )
-    st.button("Customer submissions are unavailable in this demo", disabled=True)
+    st.button("Submit request", disabled=True, help="This page shows a saved sample request.")
+    st.caption("This is a saved example. New requests can be submitted in the local app.")
 else:
     st.title("About this demo")
     st.write(
-        "ContractorFlow combines customer intake, a sales pipeline, follow-up scheduling, business intelligence and local notification previews for small contractors."
+        "ContractorFlow is a small CRM for contractors: keep customer requests together, "
+        "track their status, and follow up without losing the details."
     )
     st.markdown("""**Try this short tour:**
 
-1. Change the dashboard date range and inspect the service and pipeline charts.
-2. Search lead records and compare pending, overdue and completed follow-ups.
-3. Read a customer confirmation, owner alert or reminder preview.
-4. Download a fictional CSV report from the dashboard.
+1. Start with Overview to see requests and follow-ups.
+2. Open Customers & requests to find a customer and read their request.
+3. Check Follow-ups and Messages to see the next steps and sample replies.
+4. Use the date filter and download CSV reports from Overview.
 """)
-    st.caption(
-        "All timestamps are stored as UTC and displayed in America/New_York. No revenue is inferred. Pipeline stages show current counts, not historical conversions between stages."
-    )
     st.write(
-        "The public demo generates its 150 customers in a disposable in-memory SQLite database. It does not open operational databases, accept customer submissions, change records, or send communications. The generated snapshot is cached for up to one hour; the next visit or rerun after expiry creates a fresh snapshot. No visitor reset is necessary."
+        "All 150 customers are fictional. You can search, filter, and download reports. "
+        "Editing and new submissions are available in the local application. No messages "
+        "are sent from this demo."
     )
+    with st.expander("Sample data & technical details"):
+        st.caption(f"Sample data updated: {local_timestamp(reference)} (New York time).")
+        st.write(
+            "The sample is generated in memory and refreshed after up to one hour. Reports "
+            "use the sample's fixed time so deadlines stay consistent while you explore. "
+            "No operational database is opened. Filters affect only your view."
+        )
+        st.caption(
+            "Dates are stored as UTC and displayed in America/New_York. Pipeline counts "
+            "show current statuses, not historical conversions. No revenue is inferred."
+        )
     st.markdown(
         "[Source code and local installation instructions](https://github.com/jholbrook88/ContractorFlow)"
     )

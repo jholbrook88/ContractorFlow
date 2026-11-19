@@ -163,7 +163,17 @@ class UITests(unittest.TestCase):
             conn.execute("UPDATE followup_tasks SET due_at='2020-01-01T00:00:00.000000+00:00'")
         app.sidebar.radio[0].set_value("Dashboard").run()
         self.assertFalse(app.exception)
-        self.assertEqual([m.value for m in app.metric], ["1", "0", "0.0%", "1", "1", "0"])
+        self.assertEqual(
+            {m.label: m.value for m in app.metric},
+            {
+                "Total requests": "1",
+                "New requests": "0",
+                "Open follow-ups": "1",
+                "Overdue follow-ups": "1",
+                "Requests won": "0.0%",
+            },
+        )
+        self.assertTrue(any("0 completed" in caption.value for caption in app.caption))
         app.sidebar.radio[0].set_value("Task Management").run()
         app.selectbox[0].set_value("Overdue").run()
         self.assertFalse(app.exception)
@@ -173,7 +183,11 @@ class UITests(unittest.TestCase):
         app.selectbox[0].set_value("Completed").run()
         self.assertEqual(len(app.dataframe[0].value), 1)
         app.sidebar.radio[0].set_value("Dashboard").run()
-        self.assertEqual([m.value for m in app.metric][-3:], ["0", "0", "1"])
+        self.assertEqual(
+            {m.label: m.value for m in app.metric if "follow-ups" in m.label},
+            {"Open follow-ups": "0", "Overdue follow-ups": "0"},
+        )
+        self.assertTrue(any("1 completed" in caption.value for caption in app.caption))
         app.sidebar.radio[0].set_value("Settings").run()
         self.assertFalse(app.exception)
 
@@ -200,13 +214,31 @@ class UITests(unittest.TestCase):
                 str(Path(__file__).resolve().parents[1] / "main.py"), default_timeout=10
             ).run()
             self.assertFalse(app.exception)
-            self.assertEqual([m.value for m in app.metric], ["2", "1", "50.0%", "2", "0", "0"])
+            self.assertEqual(
+                {m.label: m.value for m in app.metric},
+                {
+                    "Total requests": "2",
+                    "New requests": "1",
+                    "Open follow-ups": "2",
+                    "Overdue follow-ups": "0",
+                    "Requests won": "50.0%",
+                },
+            )
             self.assertEqual(len(app.get("plotly_chart")), 4)
             self.assertEqual(len(app.get("download_button")), 2)
             for period in ["Last 7 days", "Last 30 days", "Last 90 days"]:
                 app.selectbox[0].set_value(period).run()
                 self.assertFalse(app.exception)
-                self.assertEqual([m.value for m in app.metric], ["1", "0", "100.0%", "1", "0", "0"])
+                self.assertEqual(
+                    {m.label: m.value for m in app.metric},
+                    {
+                        "Total requests": "1",
+                        "New requests": "0",
+                        "Open follow-ups": "1",
+                        "Overdue follow-ups": "0",
+                        "Requests won": "100.0%",
+                    },
+                )
                 self.assertEqual(
                     app.dataframe[-1].value.iloc[0]["created_at"], "2026-11-02 12:00:00-05:00"
                 )

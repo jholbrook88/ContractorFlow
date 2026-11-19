@@ -44,7 +44,7 @@ def category_figure(rows, field):
             textposition="outside",
             cliponaxis=False,
             marker_color=[palette.get(label, BLUE) for label in labels],
-            hovertemplate=("%{y}: %{x} leads" if horizontal else "%{x}: %{y} leads")
+            hovertemplate=("%{y}: %{x} requests" if horizontal else "%{x}: %{y} requests")
             + "<extra></extra>",
         )
     )
@@ -57,9 +57,9 @@ def category_figure(rows, field):
             tickmode="array",
             tickvals=labels,
         )
-        fig.update_xaxes(title="Leads", rangemode="tozero", tickformat=",d", nticks=6)
+        fig.update_xaxes(title="Requests", rangemode="tozero", tickformat=",d", nticks=6)
     else:
-        fig.update_yaxes(title="Leads")
+        fig.update_yaxes(title="Requests")
         fig.update_xaxes(type="category")
     count_axis = fig.update_xaxes if horizontal else fig.update_yaxes
     count_axis(dtick=max(1, math.ceil(max(counts, default=0) / 5)))
@@ -101,7 +101,7 @@ def volume_figure(volume):
         ticktext=[labels[i] for i in indices],
         tickformat="%b %d",
         range=[start.isoformat(), end.isoformat()],
-        title="America/New_York",
+        title="New York time",
         tickangle=0,
     )
     fig.update_yaxes(
